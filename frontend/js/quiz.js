@@ -1,10 +1,4 @@
 // Student Quiz Interface - Theme, Anti-Cheat, Progress Tracking, PDF, Certificates
-const API_URL =
-    window.location.hostname === 'localhost' || 
-    window.location.hostname === '127.0.0.1' || 
-    window.location.hostname === '10.0.2.2'
-        ? (window.location.hostname === '10.0.2.2' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api')
-        : 'https://quiz-app-backend-a5mp.onrender.com/api';
 
 // Theme Loading
 const savedTheme = localStorage.getItem('theme');
@@ -15,6 +9,29 @@ if (savedTheme === 'dark') {
 // Load Accent Theme Immediately
 const savedAccent = localStorage.getItem('accentTheme') || 'blue';
 document.body.classList.add(`theme-${savedAccent}`);
+
+// Self-contained API helpers to bypass cached api.js
+function isLoggedIn() {
+    return !!localStorage.getItem('token');
+}
+function getToken() {
+    return localStorage.getItem('token');
+}
+function getStudent() {
+    const student = localStorage.getItem('student');
+    return student ? JSON.parse(student) : null;
+}
+async function submitQuiz(subjectId, answers, warningsCount) {
+    const response = await fetch(`${API_URL}/quiz/submit`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ subjectId, answers, warningsCount })
+    });
+    return await response.json();
+}
 
 // Check if user is logged in
 if (!isLoggedIn()) {

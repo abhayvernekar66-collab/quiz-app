@@ -1,10 +1,4 @@
 // Student Home Page Logic - Glassmorphic theme & premium features
-const API_URL =
-    window.location.hostname === 'localhost' || 
-    window.location.hostname === '127.0.0.1' || 
-    window.location.hostname === '10.0.2.2'
-        ? (window.location.hostname === '10.0.2.2' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api')
-        : 'https://quiz-app-backend-a5mp.onrender.com/api';
 
 // Load Theme Immediately
 const savedTheme = localStorage.getItem('theme');
@@ -17,10 +11,52 @@ const savedAccent = localStorage.getItem('accentTheme') || 'blue';
 document.body.classList.add(`theme-${savedAccent}`);
 
 // Check if user is logged in
+function isLoggedIn() {
+    return !!localStorage.getItem('token');
+}
 if (!isLoggedIn()) {
     window.location.href = 'login.html';
 } else if (localStorage.getItem('teacher')) {
     window.location.href = 'teacher.html';
+}
+
+// Self-contained API helpers to bypass cached api.js
+function getToken() {
+    return localStorage.getItem('token');
+}
+
+async function apiCall(endpoint, options = {}) {
+    const token = getToken();
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    };
+    const finalOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+    
+    const response = await fetch(`${API_URL}${endpoint}`, finalOptions);
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('student');
+        window.location.href = 'login.html';
+    }
+    return await response.json();
+}
+
+async function getSubjects() {
+    return apiCall('/quiz/subjects');
+}
+
+async function getQuizHistory() {
+    return apiCall('/quiz/history');
 }
 
 // Get student info and display
