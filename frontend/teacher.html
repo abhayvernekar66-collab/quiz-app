@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Quiz Application</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js CDN for Analytics Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js CDN for Report PDF Downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <h2>SDMCET Quiz System - Teacher Portal</h2>
+            </div>
+            <div class="nav-right">
+                <span id="teacherInfo">Loading...</span>
+                <div class="theme-accent-selector" style="margin-right: 10px;">
+                    <button type="button" class="accent-dot blue" onclick="setAccent('blue')" title="Blue Theme"></button>
+                    <button type="button" class="accent-dot purple" onclick="setAccent('purple')" title="Purple Theme"></button>
+                    <button type="button" class="accent-dot yellow" onclick="setAccent('yellow')" title="Yellow Theme"></button>
+                </div>
+                <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" style="margin-right: 10px;">☀️</button>
+                <button onclick="logout()" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1>Welcome, <span id="teacherName">Teacher</span></h1>
+            <p class="subtitle">Manage course subjects, configure test questions, and view student progress.</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs-container">
+            <button id="tab-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Dashboard Overview</button>
+            <button id="tab-manage" class="tab-btn" onclick="switchTab('manage')">Subjects & Questions</button>
+            <button id="tab-performance" class="tab-btn" onclick="switchTab('performance')">Student Performance</button>
+        </div>
+
+        <!-- Message Alert -->
+        <div id="alertMessage" class="message"></div>
+
+        <!-- TAB 1: Dashboard Overview -->
+        <div id="tab-content-dashboard" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--primary-color);">📚</div>
+                    <h3 id="statSubjects">0</h3>
+                    <p>Total Subjects</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--success-color);">❓</div>
+                    <h3 id="statQuestions">0</h3>
+                    <p>Total Questions</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #ffc107;">📝</div>
+                    <h3 id="statSubmissions">0</h3>
+                    <p>Total Submissions</p>
+                </div>
+            </div>
+
+            <!-- Quick Insights Row -->
+            <div id="insightsContainer" class="card teacher-card" style="margin-top: 20px; padding: 20px; display: none;">
+                <h3 style="font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 10px; color: var(--text-color) !important;">📊 Academic Quick Insights</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; text-align: center;">
+                    <div style="background: var(--accent-bg); padding: 15px; border-radius: 8px; border: var(--card-border);">
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">🏆 Subject Champion</p>
+                        <h4 id="insightChamp" style="font-size: 15px; font-weight: bold; color: var(--success-color);">None yet</h4>
+                    </div>
+                    <div style="background: var(--accent-bg); padding: 15px; border-radius: 8px; border: var(--card-border);">
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">⚡ Toughest Challenge</p>
+                        <h4 id="insightToughest" style="font-size: 15px; font-weight: bold; color: var(--danger-color);">None yet</h4>
+                    </div>
+                    <div style="background: var(--accent-bg); padding: 15px; border-radius: 8px; border: var(--card-border);">
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">🔥 Most Active Quiz</p>
+                        <h4 id="insightActive" style="font-size: 15px; font-weight: bold; color: var(--primary-color);">None yet</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Analytics Charts -->
+            <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div class="card teacher-card" style="padding: 20px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Average Scores by Subject</h3>
+                    <canvas id="scoresChart" style="max-height: 280px; width: 100%;"></canvas>
+                </div>
+                <div class="card teacher-card" style="padding: 20px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Submission Results Distribution</h3>
+                    <canvas id="passFailChart" style="max-height: 280px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Subjects & Questions Management -->
+        <div id="tab-content-manage" class="tab-content" style="display: none;">
+            <div class="management-grid">
+                <!-- Column 1: Forms -->
+                <div class="management-forms">
+                    <!-- Create Subject Card -->
+                    <div class="card teacher-card">
+                        <h3 id="subjectFormTitle">Create New Subject</h3>
+                        <form id="createSubjectForm">
+                            <div class="form-group">
+                                <label for="subjectName">Subject Name</label>
+                                <input type="text" id="subjectName" required placeholder="e.g. Computer Networks">
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectCode">Subject Code</label>
+                                <input type="text" id="subjectCode" required placeholder="e.g. CS401">
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectTimeLimit">Time Limit (Minutes)</label>
+                                <input type="number" id="subjectTimeLimit" min="1" max="180" value="15" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectQuestionCount">Quiz Questions Count</label>
+                                <input type="number" id="subjectQuestionCount" min="1" max="100" value="10" required>
+                            </div>
+                            <button type="submit" class="btn-primary" style="margin-top: 5px; width: 100%;">Create Subject</button>
+                        </form>
+                    </div>
+
+                    <!-- Create/Edit Question Card -->
+                    <div class="card teacher-card" style="margin-top: 20px;">
+                        <h3 id="questionFormTitle">Add Quiz Question</h3>
+                        <form id="createQuestionForm">
+                            <!-- Hidden input to track editing state -->
+                            <input type="hidden" id="editingQuestionId" value="">
+                            
+                            <div class="form-group">
+                                <label for="selectSubject">Select Subject</label>
+                                <select id="selectSubject" required>
+                                    <option value="">-- Choose Subject --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="questionText">Question Text</label>
+                                <textarea id="questionText" rows="3" required placeholder="Enter question text here..."></textarea>
+                            </div>
+                            <div class="options-grid">
+                                <div class="form-group">
+                                    <label for="optionA">Option A</label>
+                                    <input type="text" id="optionA" required placeholder="Option A">
+                                </div>
+                                <div class="form-group">
+                                    <label for="optionB">Option B</label>
+                                    <input type="text" id="optionB" required placeholder="Option B">
+                                </div>
+                                <div class="form-group">
+                                    <label for="optionC">Option C</label>
+                                    <input type="text" id="optionC" required placeholder="Option C">
+                                </div>
+                                <div class="form-group">
+                                    <label for="optionD">Option D</label>
+                                    <input type="text" id="optionD" required placeholder="Option D">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="correctAnswer">Correct Option</label>
+                                <select id="correctAnswer" required>
+                                    <option value="">-- Choose Correct Option --</option>
+                                    <option value="A">Option A</option>
+                                    <option value="B">Option B</option>
+                                    <option value="C">Option C</option>
+                                    <option value="D">Option D</option>
+                                </select>
+                            </div>
+                            <button type="submit" id="questionFormSubmitBtn" class="btn-primary" style="margin-top: 5px; width: 100%;">Add Question</button>
+                            <button type="button" id="cancelEditQuestionBtn" class="btn-logout" style="margin-top: 5px; width: 100%; background: #64748b; display: none;">Cancel Edit</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Column 2: View Questions list -->
+                <div class="management-preview card teacher-card">
+                    <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3>View Existing Questions</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="previewSelectSubject" style="padding: 8px; margin: 0; min-width: 180px;">
+                                <option value="">-- Select Subject --</option>
+                            </select>
+                            <button id="deleteSubjectBtn" class="btn-logout" style="background: var(--danger-color, #ef4444); color: white; border: none; padding: 8px 12px; display: none; cursor: pointer; border-radius: 4px; font-weight: 600; font-size: 13px; margin: 0;">Delete Subject</button>
+                        </div>
+                    </div>
+                    <div id="questionsPreviewList" class="questions-preview-list">
+                        <p class="empty-state">Select a subject above to view its questions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Student Performance Logs -->
+        <div id="tab-content-performance" class="tab-content" style="display: none;">
+            <div class="performance-section card teacher-card">
+                <div class="performance-header">
+                    <h3>Student Test Results</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="downloadAllResultsPdf()" class="btn-refresh" style="background: var(--success-color); color: white; border: none;">📄 Export PDF Report</button>
+                        <button onclick="loadStudentPerformance()" class="btn-refresh">🔄 Refresh Results</button>
+                    </div>
+                </div>
+                <div class="history-table" style="margin-top: 15px;">
+                    <table id="performanceTable">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>USN</th>
+                                <th>Subject</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Warnings</th>
+                                <th>Date Taken</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center;">Loading student performance logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/teacher.js"></script>
+</body>
+</html>

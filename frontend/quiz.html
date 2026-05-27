@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - Quiz Application</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- html2pdf.js CDN for Report & Certificate Downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- canvas-confetti for Gamification Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <h2>SDMCET Quiz System</h2>
+            </div>
+            <div class="nav-right">
+                <span id="timerDisplay" class="timer">⏱️ --:--</span>
+                <span id="studentInfo">Loading...</span>
+                <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" style="margin-right: 10px;">☀️</button>
+                <button onclick="exitQuizAttempt()" class="btn-logout">Exit Exam</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Quiz Container -->
+    <div class="container">
+        <!-- Progress Bar Container -->
+        <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <!-- Quiz Header -->
+        <div class="quiz-header">
+            <h2 id="subjectName">Loading Quiz...</h2>
+            <p class="quiz-info">Answer all questions and click Submit</p>
+        </div>
+
+        <!-- Slide Wrapper to clip animations -->
+        <div class="slide-container">
+            <!-- Quiz Questions -->
+            <div id="quizContainer" class="quiz-container">
+                <p class="loading">Loading questions...</p>
+            </div>
+        </div>
+
+        <!-- Pagination Controls and Dots Indicators -->
+        <div id="quizNavSection" class="quiz-navigation" style="display: none;">
+            <button id="prevQuestionBtn" class="btn-refresh" onclick="prevQuestion()" style="margin: 0; padding: 10px 18px; font-size: 13px;">← Previous</button>
+            <div id="questionDots" class="question-dots"></div>
+            <button id="nextQuestionBtn" class="btn-primary" onclick="nextQuestion()" style="margin: 0; padding: 10px 18px; font-size: 13px;">Next →</button>
+        </div>
+
+        <!-- Hidden submit modal link -->
+        <div id="submitSection" class="submit-section" style="display: none;"></div>
+    </div>
+
+    <!-- Exam Prep / Fullscreen Enforcer Modal -->
+    <div id="prepModal" class="modal" style="display: flex;">
+        <div class="modal-content" style="max-width: 460px;">
+            <h2 style="color: var(--danger-color); font-weight: bold; margin-bottom: 15px;">🔒 Assessment Security Alert</h2>
+            <p style="margin-bottom: 20px; font-size: 14.5px; line-height: 1.6; text-align: left;">
+                This exam is protected by a strict **Anti-Cheat Monitor**. Please review the rules:
+            </p>
+            <ul style="text-align: left; margin-bottom: 20px; font-size: 13.5px; padding-left: 20px; line-height: 1.6;">
+                <li>The exam will run in **Fullscreen Mode**.</li>
+                <li>Exiting fullscreen, reloading, or switching tabs triggers a security warning.</li>
+                <li>After **3 warnings**, your exam will be **submitted automatically** with your current answers.</li>
+            </ul>
+            <button onclick="startExamFullscreen()" class="btn-primary" style="width: 100%; margin-top: 0; background: var(--primary-color);">Start Exam in Fullscreen</button>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Submit Modal -->
+    <div id="confirmSubmitModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>Submit Quiz?</h2>
+            <p style="margin: 15px 0; font-size: 15px;">Are you sure you want to finalize and submit your quiz answers?</p>
+            <div class="confirm-buttons">
+                <button onclick="confirmSubmitQuiz(true)" class="btn-confirm-yes">Yes, Submit</button>
+                <button onclick="confirmSubmitQuiz(false)" class="btn-confirm-no">No, Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>Quiz Result</h2>
+            <div id="resultContent" class="result-content">
+                <!-- Results will be displayed here -->
+            </div>
+            
+            <div class="result-actions" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                <button id="downloadPdfBtn" onclick="downloadResultPdf()" class="btn-primary" style="background: var(--success-color); margin-top: 0;">Report PDF 📄</button>
+                <button id="downloadCertificateBtn" onclick="openCertificateView()" class="btn-primary" style="background: #e67e22; margin-top: 0; display: none;">Certificate 🎓</button>
+                <button onclick="goHome()" class="btn-primary" style="background: var(--primary-color); margin-top: 0;">Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Certificate Modal (Popup display before downloading) -->
+    <div id="certModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 860px; padding: 20px;">
+            <div class="cert-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--primary-color);">Your Certificate</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="downloadCertificatePdf()" class="btn-primary" style="background: #e67e22; margin-top: 0;">Download PDF 🎓</button>
+                    <button onclick="closeCertificateView()" class="btn-logout" style="margin-top: 0;">Close</button>
+                </div>
+            </div>
+            
+            <!-- Certificate Content Container (Stays clean for PDF export) -->
+            <div id="certificateWrapper" class="certificate-wrapper" style="display: block;">
+                <div id="certificateContent" class="certificate-container">
+                    <div class="certificate-border">
+                        <div class="certificate-badge">🏆</div>
+                        <div class="certificate-title">Certificate of Completion</div>
+                        <div class="certificate-subtitle">This is proudly presented to</div>
+                        <div id="certStudentName" class="certificate-name">Student Name</div>
+                        <div class="certificate-text">
+                            for successfully passing the assessment in the course subject <br>
+                            <span id="certSubjectName" class="certificate-subject">Subject Name</span> <br>
+                            with a final score of <strong id="certScore">0/0</strong> (<span id="certPercentage">0%</span>) on <span id="certDate">Date</span>.
+                        </div>
+                        <div class="certificate-footer">
+                            <div class="certificate-signature">
+                                SDMCET Quiz Board<br>
+                                <strong>Verification Authority</strong>
+                            </div>
+                            <div class="certificate-qr-container">
+                                <img id="certQrCode" class="certificate-qr" src="" alt="Verification QR Code">
+                                <span class="certificate-verify-txt">Scan to Verify Result</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/quiz.js"></script>
+</body>
+</html>

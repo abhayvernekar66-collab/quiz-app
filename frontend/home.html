@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Quiz Application</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <h2>SDMCET Quiz System</h2>
+            </div>
+            <div class="nav-right">
+                <span id="studentInfo">Loading...</span>
+                <button onclick="openChangePasswordModal()" class="btn-refresh" style="background: var(--primary-color); color: white; border: none; margin-left: 10px;">Change Password</button>
+                <div class="theme-accent-selector" style="margin-left: 10px;">
+                    <button type="button" class="accent-dot blue" onclick="setAccent('blue')" title="Blue Theme"></button>
+                    <button type="button" class="accent-dot purple" onclick="setAccent('purple')" title="Purple Theme"></button>
+                    <button type="button" class="accent-dot yellow" onclick="setAccent('yellow')" title="Yellow Theme"></button>
+                </div>
+                <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" style="margin-left: 10px;">☀️</button>
+                <button onclick="logout()" class="btn-logout" style="margin-left: 10px;">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1>Welcome, <span id="studentName">student</span></h1>
+            <p class="subtitle"> Ready to test your knowledge? Select a subject below!</p>
+        </div>
+
+        <!-- Student Tab Navigation -->
+        <div class="tabs-container">
+            <button id="tab-subjects" class="tab-btn active" onclick="switchStudentTab('subjects')">Available Quizzes</button>
+            <button id="tab-leaderboard" class="tab-btn" onclick="switchStudentTab('leaderboard')">Leaderboard</button>
+        </div>
+
+        <!-- TAB 1: Available Quizzes -->
+        <div id="student-tab-content-subjects" class="student-tab-content">
+            <div class="subjects-container" style="border: none; box-shadow: none; padding: 0; background: transparent;">
+                <div id="subjectsList" class="subjects-grid">
+                    <!-- Subjects will be loaded here -->
+                    <p>Loading subjects...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Leaderboard -->
+        <div id="student-tab-content-leaderboard" class="student-tab-content" style="display: none;">
+            <div class="history-section">
+                <h3>Subject Leaderboard</h3>
+                <div class="form-group" style="max-width: 320px; margin-bottom: 25px;">
+                    <label for="leaderboardSubjectSelect">Select Subject</label>
+                    <select id="leaderboardSubjectSelect">
+                        <option value="">-- Choose Subject --</option>
+                    </select>
+                </div>
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Student Name</th>
+                                <th>USN</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Date Achieved</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; font-style: italic;">Select a subject above to view the top performers.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz History Section (Always Visible) -->
+        <div class="history-section">
+            <h3>Your Quiz History</h3>
+            <div id="quizHistory" class="history-table">
+                <p>Loading history...</p>
+            </div>
+        </div>
+
+        <!-- Instructions Section (Always Visible) -->
+        <div class="instructions-section">
+            <h3>Instructions</h3>
+            <ul>
+                <li>Select a subject from above to start the quiz</li>
+                <li>Each quiz contains multiple choice questions based on subject settings</li>
+                <li>You must answer all questions to submit</li>
+                <li>Results will be displayed immediately after submission</li>
+                <li>An anti-cheat system will monitor tab switches and fullscreen compliance during the quiz</li>
+                <li>Passing students (>= 40%) will receive a downloadable Certificate of Completion!</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 420px;">
+            <h2>Change Password</h2>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="oldPassword">Old Password</label>
+                    <input type="password" id="oldPassword" required placeholder="Enter old password">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" required placeholder="Enter new password">
+                </div>
+                <div class="confirm-buttons">
+                    <button type="submit" class="btn-primary" style="margin-top: 0; background: var(--success-color);">Save</button>
+                    <button type="button" onclick="closeChangePasswordModal()" class="btn-logout" style="background: var(--danger-color);">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
