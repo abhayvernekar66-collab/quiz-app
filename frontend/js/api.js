@@ -4,7 +4,7 @@ const API_URL =
     window.location.hostname === '127.0.0.1' || 
     window.location.hostname === '10.0.2.2'
         ? (window.location.hostname === '10.0.2.2' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api')
-        : 'https://YOUR_BACKEND_URL.onrender.com/api'; // REPLACE with your Render Web Service URL when deployed
+        : 'https://quiz-app-backend-a5mp.onrender.com/api'; // REPLACE with your Render Web Service URL when deployed
 function getToken() {
     return localStorage.getItem('token');
 }

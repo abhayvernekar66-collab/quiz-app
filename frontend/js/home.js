@@ -1,4 +1,10 @@
 // Student Home Page Logic - Glassmorphic theme & premium features
+const API_URL =
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' || 
+    window.location.hostname === '10.0.2.2'
+        ? (window.location.hostname === '10.0.2.2' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api')
+        : 'https://quiz-app-backend-a5mp.onrender.com/api';
 
 // Load Theme Immediately
 const savedTheme = localStorage.getItem('theme');
